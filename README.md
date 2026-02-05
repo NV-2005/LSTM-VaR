@@ -4,7 +4,7 @@ This project implements a Deep Learning framework to forecast **Value-at-Risk (V
 
 
 
-## 📊 Project Overview
+## Project Overview
 
 Value-at-Risk (VaR) is a standard metric in financial risk management used to estimate the potential loss of a portfolio over a specific time frame at a given confidence level. Traditional methods (Parametric, Historical Simulation) often fail to capture complex non-linear dependencies or adapt quickly to changing volatility regimes.
 
@@ -13,7 +13,7 @@ This project overcomes those limitations by:
 2.  **Deep Quantile Regression:** Optimizing the network using a custom **Pinball Loss** function to strictly learn the 1st percentile of the return distribution, rather than the mean.
 3.  **Robust Backtesting:** Validating the model over ~24 years of data (including the 2008 and 2020 crises) to ensure regulatory compliance.
 
-## 🛠️ Methodology
+## Methodology
 
 ### 1. Data & Feature Engineering
 The model utilizes **30 years of S&P 500 data** augmented with the following risk factors:
@@ -32,7 +32,7 @@ The core model is a stacked LSTM network built with TensorFlow/Keras:
 * **Output Layer:** Dense (1 unit) predicting the VaR value directly.
 * **Loss Function:** Custom **Quantile Loss** (Pinball Loss) at $\alpha = 0.01$. This forces the model to penalize underestimation of risk (breaches) significantly more than overestimation.
 
-## 📈 Results & Backtesting
+## Results & Backtesting
 
 The model was backtested on **6,223 trading days** of out-of-sample data.
 
@@ -48,7 +48,7 @@ The model was backtested on **6,223 trading days** of out-of-sample data.
 ### Regulatory Compliance (Basel Committee)
 With a failure rate of **0.92%**, this model falls strictly within the **"Green Zone"** of the Basel Traffic Light approach, indicating it is statistically sound for calculating market risk capital requirements.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 * Python 3.8+
