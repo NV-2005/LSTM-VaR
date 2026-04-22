@@ -1,4 +1,4 @@
-#Forecasting Value-at-Risk with Deep Quantile Regression
+# Forecasting Value-at-Risk with Deep Quantile Regression
 
 This project implements a Deep Learning framework to forecast **Value-at-Risk (VaR)** for the S&P 500. By combining traditional financial feature engineering (GARCH, RiskMetrics) with the non-linear capabilities of **Long Short-Term Memory (LSTM)** networks, this model directly predicts the 99% VaR threshold using **Deep Quantile Regression**.
 
