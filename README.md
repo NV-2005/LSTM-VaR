@@ -1,48 +1,51 @@
-# Forecasting Value-at-Risk with Deep Quantile Regression
+#Forecasting Value-at-Risk with Deep Quantile Regression
 
 This project implements a Deep Learning framework to forecast **Value-at-Risk (VaR)** for the S&P 500. By combining traditional financial feature engineering (GARCH, RiskMetrics) with the non-linear capabilities of **Long Short-Term Memory (LSTM)** networks, this model directly predicts the 99% VaR threshold using **Deep Quantile Regression**.
 
 ## Project Overview
 
-Value-at-Risk (VaR) is a standard metric in financial risk management used to estimate the potential loss of a portfolio over a specific time frame at a given confidence level. Traditional methods (Parametric, Historical Simulation) often fail to capture complex non-linear dependencies or adapt quickly to changing volatility regimes.
+Value-at-Risk (VaR) is a standard metric in financial risk management used to estimate the potential loss of a portfolio at a given confidence level. Traditional methods often fail to capture complex non-linear dependencies or adapt quickly to changing volatility regimes.
 
-This project overcomes those limitations by:
-1.  **Hybrid Feature Engineering:** Feeding the LSTM with both raw returns and powerful statistical volatility estimates (GARCH, EWMA).
-2.  **Deep Quantile Regression:** Optimizing the network using a custom **Pinball Loss** function to strictly learn the 1st percentile of the return distribution, rather than the mean.
-3.  **Robust Backtesting:** Validating the model over nearly 24 years of data (including the 2008 and 2020 crises) to ensure regulatory compliance and statistical validity.
+This project benchmarks an LSTM-based Quantile Regression model against four industry-standard baselines to evaluate predictive accuracy and regulatory compliance.
 
 ## Methodology
 
 ### 1. Data and Feature Engineering
 The model utilizes **30 years of S&P 500 data** augmented with the following risk factors:
-* **Log Returns:** The primary target for prediction.
-* **Rolling GARCH(1,1) Volatility:** A statistical volatility measure refitted every 30 days and updated recursively to capture volatility clustering.
-* **RiskMetrics (EWMA) Volatility:** An exponentially weighted moving average (Lambda = 0.94) providing a baseline industry-standard risk measure.
-* **VIX Index:** Market sentiment gauge, normalized to a daily volatility scale to capture implied volatility expectations.
-* **RSI (Relative Strength Index):** A 14-day momentum indicator used to detect potential mean-reversion or trend-exhaustion points.
+* **Rolling GARCH(1,1) Volatility:** Statistical volatility measure refitted every 30 days.
+* **RiskMetrics (EWMA) Volatility:** Exponentially weighted moving average (Lambda = 0.94).
+* **VIX Index:** Implied volatility normalized to a daily scale.
+* **RSI (Relative Strength Index):** 14-day momentum indicator.
 
-### 2. Model Architecture
-The core model is a stacked LSTM network built with TensorFlow/Keras:
-* **Input Layer:** 60-day sliding window of 5 input features.
-* **Hidden Layers:**
-    * LSTM Layer (64 units) with Dropout (0.2)
-    * LSTM Layer (32 units) with Dropout (0.2)
-* **Output Layer:** Dense (1 unit) predicting the VaR threshold directly.
-* **Loss Function:** Custom **Quantile Loss** (Pinball Loss) at Alpha = 0.01. This asymmetric loss function penalizes underestimation of risk significantly more than overestimation.
+### 2. Model Architecture and Hyperparameters
+The architecture was optimized following the grid search methodology outlined in the *Journal of Financial Econometrics (Babii et al., 2022)*, favoring a regularized, shallow network to prevent overfitting:
 
-## Results and Backtesting
+* **Architecture:** 2-Stack LSTM
+* **Units per Layer:** 10
+* **Hidden Activation:** ReLU
+* **Output Activation:** Linear
+* **Regularization:** L2 Weight Decay (Lambda = 0.01) and 20% Dropout
+* **Optimizer:** Adam (Learning Rate = 0.001)
+* **Batch Size:** 20
 
-The model was backtested on **6,223 trading days** of out-of-sample data.
+## Backtesting and Comparative Analysis
 
-| Metric | Result | Description |
-| :--- | :--- | :--- |
-| Confidence Level | 99% | Expected breaches only 1% of the time |
-| Expected Breaches | 62 | Theoretical number of failures over the test period |
-| Actual Breaches | **57** | Actual number of times losses exceeded VaR |
-| Failure Rate | **0.92%** | Empirical alpha compared to 1.0% target |
+The models were evaluated over **2,209 out-of-sample trading days** targeting a **1.0% Alpha** (99% Confidence Level).
 
-### Regulatory Compliance (Basel Committee)
-With a failure rate of **0.92%**, this model falls strictly within the **Green Zone** of the Basel Traffic Light approach. This indicates the model is statistically sound and would not require additional capital multipliers under standard market risk frameworks.
+### Global Model Comparison
+
+| Model | Actual Breaches | Failure Rate (%) | Kupiec POF P-Value | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **LSTM (Deep Quantile)** | **21** | **0.95%** | **0.8142** | **PASSED** |
+| Quantile Regression | 25 | 1.13% | 0.5422 | **PASSED** |
+| Polynomial Regression | 34 | 1.54% | 0.0183 | FAILED |
+| Historical Simulation | 35 | 1.58% | 0.0110 | FAILED |
+| Parametric (Normal) | 54 | 2.44% | 0.0000 | FAILED |
+
+### Statistical Validation
+1.  **Kupiec Proportion of Failures (POF):** The LSTM achieved a P-value of 0.8142, indicating its failure rate is statistically indistinguishable from the 1.0% target.
+2.  **Regulatory Compliance:** With a 0.95% failure rate, the LSTM falls into the **Basel Green Zone**, satisfying international standards for market risk capital requirements.
+3.  **Independence:** Analysis of consecutive hits confirmed that the LSTM significantly reduced breach clustering compared to Polynomial and Historical models.
 
 ## Getting Started
 
@@ -60,6 +63,6 @@ pip install tensorflow yfinance arch pandas numpy scikit-learn matplotlib
 ```
 
 ### Usage
-1.  Run the data acquisition and feature engineering scripts to generate the volatility surfaces.
-2.  Execute the training notebook to compile the LSTM with the custom Quantile Loss function.
-3.  Utilize the backtesting module to generate POF (Proportion of Failures) tests and independence metrics.
+1.  Generate volatility features using the GARCH and RiskMetrics modules.
+2.  Train the LSTM using the custom Pinball Loss function.
+3.  Execute the backtesting script to generate comparative POF and independence statistics.
